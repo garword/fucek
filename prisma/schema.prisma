@@ -1,0 +1,353 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  name                 String?
+  email                String                @unique
+  username             String?               @unique
+  passwordHash         String?
+  googleId             String?               @unique
+  role                 String                @default("USER")
+  emailVerifiedAt      DateTime?
+  otpHash              String?
+  otpExpiresAt         DateTime?
+  otpRetryAfter        DateTime?
+  otpAttempts          Int                   @default(0)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  balance              Decimal               @default(0)
+  walletPin            String?
+  resetToken           String?               @unique
+  resetTokenExpiry     DateTime?
+  auditLogs            AuditLog[]
+  cart                 CartItem[]
+  cartMeta             CartMeta?
+  deposits             Deposit[]
+  orders               Order[]
+  paymentConfirmations PaymentConfirmation[]
+  reviews              Review[]
+  walletTx             WalletTransaction[]
+  wishlist             WishlistItem[]
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  type      String    @default("DIGITAL")
+  iconKey   String?
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id                  String           @id @default(cuid())
+  name                String
+  slug                String           @unique
+  description         String
+  imageUrl            String?
+  categoryId          String
+  socialProofMode     String?
+  isActive            Boolean          @default(true)
+  isDeleted           Boolean          @default(false)
+  instantDeliveryInfo String?          @default("Produk dikirim otomatis oleh sistem 24/7.")
+  warrantyInfo        String?          @default("Garansi penuh selama durasi langganan.")
+  supportInfo         String?          @default("Hubungi kami jika ada kendala.")
+  ratingValue         Float            @default(5.0)
+  reviewCount         Int              @default(100)
+  soldCount           Int              @default(0)
+  wishlistCount       Int              @default(0)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  category            Category         @relation(fields: [categoryId], references: [id])
+  variants            ProductVariant[]
+  reviews             Review[]
+}
+
+model ProductVariant {
+  id            String            @id @default(cuid())
+  productId     String
+  name          String
+  price         Decimal
+  originalPrice Decimal?
+  sku           String?           @unique
+  bestProvider  String?
+  deliveryType  String            @default("manual")
+  stock         Int               @default(0)
+  durationDays  Int
+  warrantyDays  Int
+  sortOrder     Int               @default(0)
+  isActive      Boolean           @default(true)
+  isDeleted     Boolean           @default(false)
+  cartItems     CartItem[]
+  stocks        DigitalStock[]
+  orderItems    OrderItem[]
+  product       Product           @relation(fields: [productId], references: [id])
+  providers     VariantProvider[]
+  wishlistItems WishlistItem[]
+}
+
+model DigitalStock {
+  id               String         @id @default(cuid())
+  variantId        String
+  payloadEncrypted String
+  status           String         @default("AVAILABLE")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  expiryDate       DateTime?
+  variant          ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+model VariantProvider {
+  id             String         @id @default(cuid())
+  variantId      String
+  providerCode   String
+  providerSku    String
+  providerPrice  Decimal
+  providerStatus Boolean        @default(true)
+  lastUpdated    DateTime       @default(now())
+  variant        ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@unique([providerCode, providerSku])
+  @@index([variantId])
+}
+
+model Order {
+  id                  String               @id @default(cuid())
+  userId              String
+  invoiceCode         String               @unique
+  status              String               @default("PENDING")
+  subtotalAmount      Decimal
+  discountAmount      Decimal              @default(0)
+  totalAmount         Decimal
+  deliveredAt         DateTime?
+  promoSnapshot       String?
+  paymentMethod       String?
+  paymentGatewayFee   Decimal              @default(0)
+  qrisString          String?
+  expiredAt           DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  auditLogs           AuditLog[]
+  user                User                 @relation(fields: [userId], references: [id])
+  orderItems          OrderItem[]
+  paymentConfirmation PaymentConfirmation?
+}
+
+model PaymentGatewayConfig {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  slug          String?
+  apiKey        String?
+  mode          String   @default("SANDBOX")
+  feePercentage Float    @default(0)
+  feeFixed      Decimal  @default(0)
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OrderItem {
+  id              String         @id @default(cuid())
+  orderId         String
+  variantId       String
+  productName     String
+  variantName     String
+  priceAtPurchase Decimal
+  quantity        Int
+  subtotal        Decimal
+  note            String?
+  providerStatus  String?
+  providerTrxId   String?
+  sn              String?
+  target          String?
+  remains         Int?           @default(0)
+  startCount      Int?           @default(0)
+  variant         ProductVariant @relation(fields: [variantId], references: [id])
+  order           Order          @relation(fields: [orderId], references: [id])
+}
+
+model WishlistItem {
+  id        String         @id @default(cuid())
+  userId    String
+  variantId String
+  createdAt DateTime       @default(now())
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+
+  @@unique([userId, variantId])
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  userId    String
+  variantId String
+  quantity  Int            @default(1)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  target    String?
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+
+  @@unique([userId, variantId])
+}
+
+model PromoCode {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  type              String
+  value             Decimal
+  minOrderAmount    Decimal?
+  maxDiscountAmount Decimal?
+  startAt           DateTime?
+  endAt             DateTime?
+  usageLimit        Int?
+  usageCount        Int       @default(0)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+}
+
+model PaymentConfirmation {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  userId    String
+  note      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  orderId    String?
+  productId  String
+  userId     String?
+  userName   String?
+  userAvatar String?
+  rating     Int
+  comment    String?
+  isFake     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+  variantName String? // For AI reviews or caching
+  isRepeatOrder Boolean @default(false) // For AI reviews to simulate loyal customers
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  orderId   String?
+  action    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  order     Order?   @relation(fields: [orderId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String?
+  content   String?
+  updatedAt DateTime @updatedAt
+}
+
+model CartMeta {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  promoCode String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model DigiflazzCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  data      String
+  lastFetch DateTime @default(now())
+  expiresAt DateTime
+  isStale   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  isSecret    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+model TierConfig {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  minTrx        Int      @default(0)
+  marginPercent Float    @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WalletTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String
+  amount        Decimal
+  balanceBefore Decimal
+  balanceAfter  Decimal
+  referenceId   String?
+  description   String?
+  status        String   @default("SUCCESS")
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Deposit {
+  id            String    @id @default(cuid())
+  userId        String
+  amount        Decimal
+  uniqueCode    Int       @default(0)
+  feeAmount     Decimal   @default(0)
+  totalPay      Decimal
+  status        String
+  paymentMethod String
+  qrisString    String?
+  expiredAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id])
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
