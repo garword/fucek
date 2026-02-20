@@ -16,7 +16,7 @@ const prismaClientSingleton = () => {
 
         const libsql = createClient({
             url: cleanUrl,
-            authToken: process.env.TURSO_AUTH_TOKEN || urlToken
+            authToken: process.env.TURSO_AUTH_TOKEN || urlToken || undefined
         });
         const adapter = new PrismaLibSQL(libsql);
 

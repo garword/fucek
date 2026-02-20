@@ -19,7 +19,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@google/generative-ai": "^0.24.1",
-    "@libsql/client": "^0.6.0",
+    "@libsql/client": "^0.14.0",
     "@prisma/adapter-libsql": "^5.21.1",
     "@prisma/client": "^5.21.1",
     "@tiptap/react": "^3.19.0",

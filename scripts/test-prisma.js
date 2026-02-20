@@ -26,7 +26,8 @@ async function main() {
     const urlObj = new URL(url);
     const urlToken = urlObj.searchParams.get('authToken');
     urlObj.searchParams.delete('authToken');
-    const cleanUrl = urlObj.toString();
+    // Force HTTPS to avoid migration job errors with Prisma Adapter
+    const cleanUrl = urlObj.toString().replace(/^libsql:/, 'https:');
 
     const libsql = createClient({
         url: cleanUrl,
