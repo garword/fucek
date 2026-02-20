@@ -8,6 +8,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import { ToastProvider } from "@/context/ToastContext";
 import SalesNotification from "@/components/features/notification/SalesNotification";
 import HelpCenterWidget from "@/components/features/cs/HelpCenterWidget";
+import prisma from "@/lib/prisma";
 
 // ... existing imports
 
