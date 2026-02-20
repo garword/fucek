@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "patch-package && prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -19,8 +19,8 @@
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@google/generative-ai": "^0.24.1",
-    "@libsql/client": "^0.14.0",
-    "@prisma/adapter-libsql": "^5.21.1",
+    "@libsql/client": "0.6.2",
+    "@prisma/adapter-libsql": "5.21.1",
     "@prisma/client": "^5.21.1",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
@@ -53,6 +53,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "patch-package": "^8.0.1",
     "prisma": "^5.21.1",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",

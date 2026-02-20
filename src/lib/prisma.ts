@@ -7,20 +7,21 @@ const prismaClientSingleton = () => {
 
     // Use LibSQL Adapter if URL is from Turso (libsql://)
     if (url && url.includes('libsql')) {
-        // Sanitize URL: Remove authToken from query params to prevent conflicts
-        // and ensure a clean connection string for the LibSQL client.
+        // Sanitize URL: Extract authToken from query params to avoid conflicts
         const urlObj = new URL(url);
         const urlToken = urlObj.searchParams.get('authToken');
         urlObj.searchParams.delete('authToken');
         const cleanUrl = urlObj.toString();
 
+        // Prefer TURSO_AUTH_TOKEN env var; fallback to token in URL
+        const authToken = (process.env.TURSO_AUTH_TOKEN || urlToken) ?? undefined;
+
         const libsql = createClient({
             url: cleanUrl,
-            authToken: process.env.TURSO_AUTH_TOKEN || urlToken || undefined
+            authToken
         });
         const adapter = new PrismaLibSQL(libsql);
-
-        // @ts-ignore: Adapter property is valid for LibSQL but missing in some Prisma types
+        // @ts-ignore: adapter is valid for Prisma Client with driverAdapters feature
         return new PrismaClient({ adapter });
     }
 

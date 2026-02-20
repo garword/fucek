@@ -1,0 +1,45 @@
+diff --git a/node_modules/@libsql/client/lib-cjs/http.js b/node_modules/@libsql/client/lib-cjs/http.js
+index 29af08c..a994710 100644
+--- a/node_modules/@libsql/client/lib-cjs/http.js
++++ b/node_modules/@libsql/client/lib-cjs/http.js
+@@ -1,18 +1,18 @@
+ "use strict";
+-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     var desc = Object.getOwnPropertyDescriptor(m, k);
+     if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+-      desc = { enumerable: true, get: function() { return m[k]; } };
++        desc = { enumerable: true, get: function () { return m[k]; } };
+     }
+     Object.defineProperty(o, k2, desc);
+-}) : (function(o, m, k, k2) {
++}) : (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     o[k2] = m[k];
+ }));
+-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function (o, v) {
+     Object.defineProperty(o, "default", { enumerable: true, value: v });
+-}) : function(o, v) {
++}) : function (o, v) {
+     o["default"] = v;
+ });
+ var __importStar = (this && this.__importStar) || function (mod) {
+@@ -22,7 +22,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+     __setModuleDefault(result, mod);
+     return result;
+ };
+-var __exportStar = (this && this.__exportStar) || function(m, exports) {
++var __exportStar = (this && this.__exportStar) || function (m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+@@ -73,6 +73,7 @@ class HttpClient {
+         this.protocol = "http";
+         this.#url = url;
+         this.#authToken = authToken;
++        this.#isSchemaDatabase = false; // Disable schema/migration check - not needed for regular Turso databases
+     }
+     async getIsSchemaDatabase() {
+         if (this.#isSchemaDatabase === undefined) {
